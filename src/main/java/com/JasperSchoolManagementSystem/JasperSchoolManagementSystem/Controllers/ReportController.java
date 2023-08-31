@@ -16,10 +16,21 @@ public class ReportController {
     @Autowired
     private ReportService reportService;
 
-    @GetMapping
+    @GetMapping("/schools")
     public ResponseEntity<String> generateSchoolReport() {
         try {
             String reportPath = reportService.generateReport();
+            return ResponseEntity.ok(reportPath);
+        } catch (FileNotFoundException | JRException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error generating report.");
+        }
+    }
+
+    @GetMapping("/courses")
+    public ResponseEntity<String> generateCourseReport() {
+        try {
+            String reportPath = reportService.courseReport();
             return ResponseEntity.ok(reportPath);
         } catch (FileNotFoundException | JRException e) {
             e.printStackTrace();

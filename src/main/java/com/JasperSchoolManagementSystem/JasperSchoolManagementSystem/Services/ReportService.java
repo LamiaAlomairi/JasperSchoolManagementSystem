@@ -1,8 +1,13 @@
 package com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Services;
 
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Course;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Mark;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.School;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Student;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CoursesReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.SchoolsReport;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.CourseRepository;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.MarkRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.SchoolRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.StudentRepository;
 import net.sf.jasperreports.engine.*;
@@ -24,9 +29,14 @@ public class ReportService {
     SchoolRepository schoolRepository;
     @Autowired
     StudentRepository studentRepository;
+    @Autowired
+    CourseRepository courseRepository;
+    @Autowired
+    MarkRepository markRepository;
 
     String pathToReports = "C:\\Users\\dell\\Desktop\\Project\\JasperSchoolManagementSystem\\JasperSchoolManagementSystem\\Report";
 
+    /* Schools Report ------------------------------------------------------------- */
     public String generateReport() throws FileNotFoundException, JRException {
         List<School> schoolList = schoolRepository.findAll();
         List<Student> studentList = studentRepository.findAll();
@@ -59,5 +69,40 @@ public class ReportService {
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
         JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports +"\\SchoolReport.pdf");
         return "Report generated: " + pathToReports + "\\SchoolReport.pdf";
+    }
+
+    /* Courses Report ------------------------------------------------------------- */
+    public String courseReport() throws FileNotFoundException, JRException {
+        List<Course> courseList = courseRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        List<CoursesReport> coursesReportList = new ArrayList<>(); // New list to hold reports
+
+        for (Course c : courseList) {
+            for (Mark mark : markList) {
+                if (mark.getCourse().getId().equals(c.getId())) {
+                    CoursesReport coursesReport = CoursesReport.builder()
+                            .courseName(c.getName())
+                            .obtainedMark(mark.getCourseMark())
+                            .grade(mark.getGrade())
+                            .build();
+                    coursesReportList.add(coursesReport); // Add report to the list
+                }
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:CoursesReport.jrxml");
+
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        // Create a data source from the reports list
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(coursesReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports +"\\CourseReport.pdf");
+        return "Report generated: " + pathToReports + "\\CourseReport.pdf";
     }
 }

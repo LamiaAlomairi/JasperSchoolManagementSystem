@@ -37,4 +37,16 @@ public class ReportController {
             return ResponseEntity.status(500).body("Error generating report.");
         }
     }
+
+    @GetMapping("/averageMarks")
+    public ResponseEntity<String> generateAverageMarksReport() {
+        try {
+            String reportPath = reportService.averageMarksReport();
+            return ResponseEntity.ok(reportPath);
+        } catch (FileNotFoundException | JRException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error generating report.");
+        }
+    }
+
 }

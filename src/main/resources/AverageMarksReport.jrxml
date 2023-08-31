@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Created with Jaspersoft Studio version 6.20.1.final using JasperReports Library version 6.20.1-7584acb244139816654f64e2fd57a00d3e31921e  -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CoursesReport" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="da72b1a8-02cf-4c62-bcf8-3b6c31d06bbe">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AverageMarksReport" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="da72b1a8-02cf-4c62-bcf8-3b6c31d06bbe">
 
     <field name="courseName" class="java.lang.String"/>
-    <field name="obtainedMark" class="java.lang.Double"/>
-    <field name="grade" class="java.lang.String"/>
+    <field name="averageMark" class="java.lang.Double"/>
     <background>
         <band/>
     </background>
@@ -13,18 +12,18 @@
             <frame>
                 <reportElement mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699" uuid="0be9932a-5d7e-4eb0-8326-aa289ebc18ec"/>
                 <staticText>
-                    <reportElement x="20" y="20" width="280" height="43" forecolor="#FFFFFF" uuid="8d0d1481-2b1d-4c13-b0d2-2955aca7b51f"/>
+                    <reportElement x="185" y="10" width="230" height="43" forecolor="#FFFFFF" uuid="8d0d1481-2b1d-4c13-b0d2-2955aca7b51f"/>
                     <textElement>
                         <font size="34" isBold="true"/>
                     </textElement>
-                    <text><![CDATA[Course Report]]></text>
+                    <text><![CDATA[Average Mark]]></text>
                 </staticText>
                 <staticText>
-                    <reportElement x="340" y="43" width="235" height="27" forecolor="#FFFFFF" uuid="0903db7b-173d-4ded-8a57-b36c3aacd4b7"/>
+                    <reportElement x="190" y="60" width="220" height="27" forecolor="#FFFFFF" uuid="0903db7b-173d-4ded-8a57-b36c3aacd4b7"/>
                     <textElement textAlignment="Right">
                         <font size="14" isBold="false"/>
                     </textElement>
-                    <text><![CDATA[All Courses with associated mark]]></text>
+                    <text><![CDATA[Show the Average Courses Mark]]></text>
                 </staticText>
             </frame>
         </band>
@@ -38,7 +37,7 @@
                 <reportElement x="-20" y="20" width="595" height="1" forecolor="#666666" uuid="8fd810c7-4a68-45ec-a6f1-de06d6bb0d4b"/>
             </line>
             <staticText>
-                <reportElement mode="Opaque" x="0" y="0" width="185" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="01696e36-8ad6-41f8-9f54-bab2e505c399">
+                <reportElement mode="Opaque" x="0" y="0" width="280" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="01696e36-8ad6-41f8-9f54-bab2e505c399">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b3e33ab5-2344-4993-99b6-c4c0e57d9353"/>
                 </reportElement>
                 <textElement textAlignment="Center">
@@ -47,22 +46,13 @@
                 <text><![CDATA[CourseName]]></text>
             </staticText>
             <staticText>
-                <reportElement mode="Opaque" x="185" y="0" width="185" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="034f8967-def0-4c45-b048-c4f3afe24015">
+                <reportElement mode="Opaque" x="280" y="0" width="274" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="034f8967-def0-4c45-b048-c4f3afe24015">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="85883f9e-0fcf-4cb4-8885-48735e33b51a"/>
                 </reportElement>
                 <textElement textAlignment="Center">
                     <font size="14" isBold="true"/>
                 </textElement>
-                <text><![CDATA[ObtainedMark]]></text>
-            </staticText>
-            <staticText>
-                <reportElement mode="Opaque" x="370" y="0" width="185" height="20" forecolor="#006699" backcolor="#E6E6E6" uuid="fa11ddcb-d39e-4350-a3d3-d272a026a246">
-                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="df70ea93-48c2-4036-bf93-020098e7ca74"/>
-                </reportElement>
-                <textElement textAlignment="Center">
-                    <font size="14" isBold="true"/>
-                </textElement>
-                <text><![CDATA[Grade]]></text>
+                <text><![CDATA[AverageMark]]></text>
             </staticText>
         </band>
     </columnHeader>
@@ -72,7 +62,7 @@
                 <reportElement positionType="FixRelativeToBottom" x="0" y="19" width="555" height="1" uuid="03b47609-9481-4fcf-beea-d37c48b08ebb"/>
             </line>
             <textField textAdjust="StretchHeight">
-                <reportElement x="0" y="0" width="185" height="20" uuid="a3bd6626-ce83-4f6c-992c-7858e59d9cfa">
+                <reportElement x="0" y="0" width="280" height="20" uuid="a3bd6626-ce83-4f6c-992c-7858e59d9cfa">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="b3e33ab5-2344-4993-99b6-c4c0e57d9353"/>
                 </reportElement>
                 <textElement>
@@ -81,22 +71,13 @@
                 <textFieldExpression><![CDATA[$F{courseName}]]></textFieldExpression>
             </textField>
             <textField textAdjust="StretchHeight">
-                <reportElement x="185" y="0" width="185" height="20" uuid="c8787045-97e4-42dd-8dee-ecadb5c9aa55">
+                <reportElement x="280" y="0" width="274" height="20" uuid="c8787045-97e4-42dd-8dee-ecadb5c9aa55">
                     <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="85883f9e-0fcf-4cb4-8885-48735e33b51a"/>
                 </reportElement>
                 <textElement>
                     <font size="14"/>
                 </textElement>
-                <textFieldExpression><![CDATA[$F{obtainedMark}]]></textFieldExpression>
-            </textField>
-            <textField textAdjust="StretchHeight">
-                <reportElement x="370" y="0" width="185" height="20" uuid="8f1ce1bb-4faf-45c4-b852-1b3cae62ba06">
-                    <property name="com.jaspersoft.studio.spreadsheet.connectionID" value="df70ea93-48c2-4036-bf93-020098e7ca74"/>
-                </reportElement>
-                <textElement>
-                    <font size="14"/>
-                </textElement>
-                <textFieldExpression><![CDATA[$F{grade}]]></textFieldExpression>
+                <textFieldExpression><![CDATA[$F{averageMark}]]></textFieldExpression>
             </textField>
         </band>
     </detail>

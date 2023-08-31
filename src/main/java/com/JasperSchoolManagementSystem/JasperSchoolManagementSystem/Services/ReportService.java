@@ -4,6 +4,7 @@ import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Cour
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Mark;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.School;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Student;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CourseAverageReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CoursesReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.SchoolsReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.CourseRepository;
@@ -105,4 +106,48 @@ public class ReportService {
         JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports +"\\CourseReport.pdf");
         return "Report generated: " + pathToReports + "\\CourseReport.pdf";
     }
+
+    /* Average Marks Report ------------------------------------------------------------- */
+    public String averageMarksReport() throws FileNotFoundException, JRException {
+        List<Course> courseList = courseRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        Map<String, List<Double>> courseMarksMap = new HashMap<>();
+
+        for (Mark mark : markList) {
+            String courseName = mark.getCourse().getName();
+            courseMarksMap.computeIfAbsent(courseName, k -> new ArrayList<>()).add(mark.getCourseMark());
+        }
+
+        List<CourseAverageReport> courseAverageReportList = new ArrayList<>(); // New list to hold reports
+
+        for (Map.Entry<String, List<Double>> entry : courseMarksMap.entrySet()) {
+            String courseName = entry.getKey();
+            List<Double> marksForCourse = entry.getValue();
+
+            if (!marksForCourse.isEmpty()) {
+                Double sumMarks = marksForCourse.stream().mapToDouble(Double::doubleValue).sum();
+                Double averageMark = sumMarks / marksForCourse.size();
+                CourseAverageReport courseAverageReport = CourseAverageReport.builder()
+                        .courseName(courseName)
+                        .averageMark(averageMark)
+                        .build();
+                courseAverageReportList.add(courseAverageReport); // Add report to the list
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:AverageMarksReport.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        // Create a data source from the reports list
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(courseAverageReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\AverageMarksReport.pdf");
+        return "Report generated: " + pathToReports + "\\AverageMarksReport.pdf";
+    }
+
 }

@@ -7,6 +7,7 @@ import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Stud
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CourseAverageReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CoursesReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.SchoolsReport;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.TopPerformingStudentsReport;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.CourseRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.MarkRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.SchoolRepository;
@@ -19,10 +20,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ReportService {
@@ -150,4 +148,49 @@ public class ReportService {
         return "Report generated: " + pathToReports + "\\AverageMarksReport.pdf";
     }
 
+    public String generateTopPerformingStudentReport() throws FileNotFoundException, JRException {
+        List<School> schoolList = schoolRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        Map<Long, List<Mark>> schoolMarksMap = new HashMap<>();
+
+        for (Mark mark : markList) {
+            Long schoolId = mark.getStudent().getSchool().getId();
+            schoolMarksMap.computeIfAbsent(schoolId, k -> new ArrayList<>()).add(mark);
+        }
+
+        List<TopPerformingStudentsReport> topPerformingStudentsReportList = new ArrayList<>(); // New list to hold reports
+
+        for (School school : schoolList) {
+            List<Mark> marksForSchool = schoolMarksMap.get(school.getId());
+            if (marksForSchool != null && !marksForSchool.isEmpty()) {
+                Mark topMark = marksForSchool.stream()
+                        .max(Comparator.comparingDouble(Mark::getCourseMark))
+                        .orElse(null);
+
+                if (topMark != null) {
+                    Student topStudent = topMark.getStudent();
+                    TopPerformingStudentsReport report = TopPerformingStudentsReport.builder()
+                            .schoolName(school.getName())
+                            .studentName(topStudent.getName())
+                            .rollNumber(topStudent.getRollNumber())
+                            .build();
+                    topPerformingStudentsReportList.add(report);
+                }
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:TopPerformingStudentsReport.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        // Create a data source from the reports list
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(topPerformingStudentsReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\TopPerformingStudentsReport.pdf");
+        return "Report generated: " + pathToReports + "\\TopPerformingStudentsReport.pdf";
+    }
 }

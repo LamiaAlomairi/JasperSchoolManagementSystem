@@ -1,9 +1,6 @@
 package com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,4 +13,12 @@ public class Mark {
     private Long id;
     private Double courseMark;
     private String grade;
+
+    @ManyToOne
+    @JoinColumn(name = "student_id")
+    private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    private Course course;
 }

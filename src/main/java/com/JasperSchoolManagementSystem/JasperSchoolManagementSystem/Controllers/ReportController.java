@@ -1,6 +1,6 @@
 package com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Controllers;
 
-import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Services.SchoolReportService;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Services.ReportService;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,14 +12,14 @@ import java.io.FileNotFoundException;
 
 @RestController
 @RequestMapping("/report")
-public class SchoolReportController {
+public class ReportController {
     @Autowired
-    private SchoolReportService schoolReportService;
+    private ReportService reportService;
 
     @GetMapping
     public ResponseEntity<String> generateSchoolReport() {
         try {
-            String reportPath = schoolReportService.generateReport();
+            String reportPath = reportService.generateReport();
             return ResponseEntity.ok(reportPath);
         } catch (FileNotFoundException | JRException e) {
             e.printStackTrace();

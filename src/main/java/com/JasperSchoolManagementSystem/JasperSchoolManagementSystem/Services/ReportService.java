@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class SchoolReportService {
+public class ReportService {
     @Autowired
     SchoolRepository schoolRepository;
     @Autowired

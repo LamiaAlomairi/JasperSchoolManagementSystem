@@ -4,10 +4,7 @@ import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Cour
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Mark;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.School;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Models.Student;
-import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CourseAverageReport;
-import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.CoursesReport;
-import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.SchoolsReport;
-import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.TopPerformingStudentsReport;
+import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.ReportObject.*;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.CourseRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.MarkRepository;
 import com.JasperSchoolManagementSystem.JasperSchoolManagementSystem.Repositories.SchoolRepository;
@@ -148,6 +145,7 @@ public class ReportService {
         return "Report generated: " + pathToReports + "\\AverageMarksReport.pdf";
     }
 
+    /* Top Performance Students Report ------------------------------------------------------------- */
     public String generateTopPerformingStudentReport() throws FileNotFoundException, JRException {
         List<School> schoolList = schoolRepository.findAll();
         List<Mark> markList = markRepository.findAll();
@@ -193,4 +191,65 @@ public class ReportService {
         JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\TopPerformingStudentsReport.pdf");
         return "Report generated: " + pathToReports + "\\TopPerformingStudentsReport.pdf";
     }
+
+    /* Student Performance Report ------------------------------------------------------------- */
+    public String generateStudentPerformanceReport() throws FileNotFoundException, JRException {
+        List<Student> studentList = studentRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        Map<Long, List<Mark>> studentMarksMap = new HashMap<>();
+
+        for (Mark mark : markList) {
+            Long studentId = mark.getStudent().getId();
+            List<Mark> marksForStudent = studentMarksMap.get(studentId);
+
+            if (marksForStudent == null) {
+                marksForStudent = new ArrayList<>();
+                studentMarksMap.put(studentId, marksForStudent);
+            }
+
+            marksForStudent.add(mark);
+        }
+
+        List<StudentPerformanceReport> studentPerformanceReportList = new ArrayList<>(); // New list to hold reports
+
+        for (Student student : studentList) {
+            Long studentId = student.getId();
+            List<Mark> marksForStudent = studentMarksMap.get(studentId);
+
+            if (marksForStudent != null && !marksForStudent.isEmpty()) {
+                Double totalMark = 0.0;
+                int markCount = 0;
+
+                for (Mark mark : marksForStudent) {
+                    totalMark += mark.getCourseMark();
+                    markCount++;
+                }
+
+                Double averageMark = totalMark / markCount;
+
+                StudentPerformanceReport report = StudentPerformanceReport.builder()
+                        .studentName(student.getName())
+                        .rollNumber(student.getRollNumber())
+                        .averageMark(averageMark)
+                        .build();
+                studentPerformanceReportList.add(report);
+            }
+        }
+
+
+        File file = ResourceUtils.getFile("classpath:StudentOverallPerformance.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        // Create a data source from the reports list
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(studentPerformanceReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\StudentPerformanceReport.pdf");
+        return "Report generated: " + pathToReports + "\\StudentPerformanceReport.pdf";
+    }
+
 }

@@ -82,4 +82,16 @@ public class ReportController {
             return ResponseEntity.status(500).body("Error generating report.");
         }
     }
+
+
+    @GetMapping("/schoolCourses")
+    public ResponseEntity<String> generateSchoolCoursePerformanceReport() {
+        try {
+            String reportPath = reportService.generateSchoolCoursePerformanceReport();
+            return ResponseEntity.ok(reportPath);
+        } catch (FileNotFoundException | JRException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error generating report.");
+        }
+    }
 }

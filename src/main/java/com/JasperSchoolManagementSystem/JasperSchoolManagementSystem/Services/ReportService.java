@@ -257,7 +257,7 @@ public class ReportService {
         return "Report generated: " + pathToReports + "\\StudentPerformanceReport.pdf";
     }
 
-
+    /* School Students Report ------------------------------------------------------------- */
     public String generateSchoolStudentsReport() throws FileNotFoundException, JRException {
         List<School> schoolList = schoolRepository.findAll();
         List<Student> studentList = studentRepository.findAll();
@@ -298,5 +298,99 @@ public class ReportService {
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
         JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\SchoolStudentsReport.pdf");
         return "Report generated: " + pathToReports + "\\SchoolStudentsReport.pdf";
+    }
+
+    /* School Course Performance Report ------------------------------------------------------------- */
+    public String generateSchoolCoursePerformanceReport() throws FileNotFoundException, JRException {
+        List<School> schoolList = schoolRepository.findAll();
+        List<Course> courseList = courseRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        Map<Long, Map<Long, List<Double>>> schoolCourseMarksMap = new HashMap<>();
+
+        // Iterate through the marks
+        for (Mark mark : markList) {
+            Long schoolId = mark.getStudent().getSchool().getId();
+            Long courseId = mark.getCourse().getId();
+            Double courseMark = mark.getCourseMark();
+
+            // Get or create the school's map
+            Map<Long, List<Double>> schoolMap = schoolCourseMarksMap.computeIfAbsent(schoolId, k -> new HashMap<>());
+
+            // Get or create the course's list of marks
+            List<Double> courseMarks = schoolMap.computeIfAbsent(courseId, k -> new ArrayList<>());
+
+            // Add the course mark to the list
+            courseMarks.add(courseMark);
+        }
+
+        File file = ResourceUtils.getFile("classpath:SchoolCoursePerformanceReport.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        List<SchoolCoursePerformanceReport> schoolCoursePerformanceReportList = new ArrayList<>();
+
+        // Iterate through the schools
+        for (School school : schoolList) {
+            // Get the map of course marks for the school
+            Map<Long, List<Double>> courseMarksMap = schoolCourseMarksMap.get(school.getId());
+
+            // Check if the map is not null
+            if (courseMarksMap != null) {
+                double highestAverageMark = 0.0;
+                Course highestAverageMarkCourse = null;
+
+                // Iterate through the courses
+                for (Course course : courseList) {
+                    // Get the list of marks for the course
+                    List<Double> marksForCourse = courseMarksMap.get(course.getId());
+
+                    // Check if the list is not null and not empty
+                    if (marksForCourse != null && !marksForCourse.isEmpty()) {
+                        double totalMarks = 0.0;
+                        int numMarks = 0;
+
+                        // Calculate the total marks and count the number of marks
+                        for (Double mark : marksForCourse) {
+                            totalMarks += mark;
+                            numMarks++;
+                        }
+
+                        // Calculate the average mark
+                        double averageMark;
+
+                        if (numMarks > 0) {
+                            averageMark = totalMarks / numMarks;
+                        } else {
+                            averageMark = 0.0;
+                        }
+
+                        // Check if this course has a higher average mark
+                        if (averageMark > highestAverageMark) {
+                            highestAverageMark = averageMark;
+                            highestAverageMarkCourse = course;
+                        }
+                    }
+                }
+
+                // Create a performance report for the course with the highest average mark
+                if (highestAverageMarkCourse != null) {
+                    SchoolCoursePerformanceReport report = SchoolCoursePerformanceReport.builder()
+                            .schoolName(school.getName())
+                            .courseName(highestAverageMarkCourse.getName())
+                            .averageMark(highestAverageMark)
+                            .build();
+                    schoolCoursePerformanceReportList.add(report);
+                }
+            }
+        }
+
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(schoolCoursePerformanceReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\SchoolCoursePerformanceReport.pdf");
+        return "Report generated: " + pathToReports + "\\SchoolCoursePerformanceReport.pdf";
     }
 }

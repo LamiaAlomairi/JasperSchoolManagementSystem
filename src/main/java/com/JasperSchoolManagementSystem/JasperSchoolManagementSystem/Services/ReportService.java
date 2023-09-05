@@ -104,32 +104,42 @@ public class ReportService {
 
     /* Average Marks Report ------------------------------------------------------------- */
     public String averageMarksReport() throws FileNotFoundException, JRException {
-        List<Course> courseList = courseRepository.findAll();
         List<Mark> markList = markRepository.findAll();
 
         Map<String, List<Double>> courseMarksMap = new HashMap<>();
 
+    // Group marks by course name
         for (Mark mark : markList) {
             String courseName = mark.getCourse().getName();
-            courseMarksMap.computeIfAbsent(courseName, k -> new ArrayList<>()).add(mark.getCourseMark());
+            List<Double> courseMarks = courseMarksMap.getOrDefault(courseName, new ArrayList<>());
+            courseMarks.add(mark.getCourseMark());
+            courseMarksMap.put(courseName, courseMarks);
         }
 
-        List<CourseAverageReport> courseAverageReportList = new ArrayList<>(); // New list to hold reports
+        List<CourseAverageReport> courseAverageReportList = new ArrayList<>();
 
+        // Calculate the average marks for each course
         for (Map.Entry<String, List<Double>> entry : courseMarksMap.entrySet()) {
             String courseName = entry.getKey();
             List<Double> marksForCourse = entry.getValue();
 
             if (!marksForCourse.isEmpty()) {
-                Double sumMarks = marksForCourse.stream().mapToDouble(Double::doubleValue).sum();
+                Double sumMarks = 0.0;
+
+                for (Double mark : marksForCourse) {
+                    sumMarks += mark;
+                }
+
                 Double averageMark = sumMarks / marksForCourse.size();
+
                 CourseAverageReport courseAverageReport = CourseAverageReport.builder()
                         .courseName(courseName)
                         .averageMark(averageMark)
                         .build();
-                courseAverageReportList.add(courseAverageReport); // Add report to the list
+                courseAverageReportList.add(courseAverageReport);
             }
         }
+
 
         File file = ResourceUtils.getFile("classpath:AverageMarksReport.jrxml");
 
@@ -150,31 +160,26 @@ public class ReportService {
         List<School> schoolList = schoolRepository.findAll();
         List<Mark> markList = markRepository.findAll();
 
-        Map<Long, List<Mark>> schoolMarksMap = new HashMap<>();
-
-        for (Mark mark : markList) {
-            Long schoolId = mark.getStudent().getSchool().getId();
-            schoolMarksMap.computeIfAbsent(schoolId, k -> new ArrayList<>()).add(mark);
-        }
-
-        List<TopPerformingStudentsReport> topPerformingStudentsReportList = new ArrayList<>(); // New list to hold reports
+        List<TopPerformingStudentsReport> topPerformingStudentsReportList = new ArrayList<>();
 
         for (School school : schoolList) {
-            List<Mark> marksForSchool = schoolMarksMap.get(school.getId());
-            if (marksForSchool != null && !marksForSchool.isEmpty()) {
-                Mark topMark = marksForSchool.stream()
-                        .max(Comparator.comparingDouble(Mark::getCourseMark))
-                        .orElse(null);
-
-                if (topMark != null) {
-                    Student topStudent = topMark.getStudent();
-                    TopPerformingStudentsReport report = TopPerformingStudentsReport.builder()
-                            .schoolName(school.getName())
-                            .studentName(topStudent.getName())
-                            .rollNumber(topStudent.getRollNumber())
-                            .build();
-                    topPerformingStudentsReportList.add(report);
+            Mark topMark = null;
+            for (Mark mark : markList) {
+                if (mark.getStudent().getSchool().getId().equals(school.getId())) {
+                    if (topMark == null || mark.getCourseMark() > topMark.getCourseMark()) {
+                        topMark = mark;
+                    }
                 }
+            }
+
+            if (topMark != null) {
+                Student topStudent = topMark.getStudent();
+                TopPerformingStudentsReport report = TopPerformingStudentsReport.builder()
+                        .schoolName(school.getName())
+                        .studentName(topStudent.getName())
+                        .rollNumber(topStudent.getRollNumber())
+                        .build();
+                topPerformingStudentsReportList.add(report);
             }
         }
 

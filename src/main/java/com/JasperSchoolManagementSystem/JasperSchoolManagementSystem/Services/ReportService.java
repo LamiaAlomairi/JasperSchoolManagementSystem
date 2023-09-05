@@ -393,4 +393,48 @@ public class ReportService {
         JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\SchoolCoursePerformanceReport.pdf");
         return "Report generated: " + pathToReports + "\\SchoolCoursePerformanceReport.pdf";
     }
+
+    /* School Performance Report ------------------------------------------------------------- */
+    public String generateSchoolPerformanceReport() throws FileNotFoundException, JRException {
+        List<School> schoolList = schoolRepository.findAll();
+        List<SchoolPerformanceReport> schoolPerformanceReportList = new ArrayList<>();
+
+        for (School school : schoolList) {
+            List<Student> studentsInSchool = school.getStudents(); // Assuming you have a relationship set up in the School entity
+
+            if (!studentsInSchool.isEmpty()) {
+                double totalMarks = 0.0;
+                int totalStudents = studentsInSchool.size();
+
+                for (Student student : studentsInSchool) {
+                    for (Mark mark : student.getMarks()) {
+                        totalMarks += mark.getCourseMark();
+                    }
+                }
+
+                double averageMark = (totalStudents > 0) ? (totalMarks / totalStudents) : 0.0;
+
+                SchoolPerformanceReport schoolPerformanceReport = SchoolPerformanceReport.builder()
+                        .schoolName(school.getName())
+                        .averageMark(averageMark)
+                        .build();
+
+                schoolPerformanceReportList.add(schoolPerformanceReport);
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:SchoolPerformanceReport.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(schoolPerformanceReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\SchoolPerformanceReport.pdf");
+
+        return "Report generated: " + pathToReports + "\\SchoolPerformanceReport.pdf";
+    }
+
 }

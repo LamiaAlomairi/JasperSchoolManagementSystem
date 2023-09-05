@@ -257,4 +257,46 @@ public class ReportService {
         return "Report generated: " + pathToReports + "\\StudentPerformanceReport.pdf";
     }
 
+
+    public String generateSchoolStudentsReport() throws FileNotFoundException, JRException {
+        List<School> schoolList = schoolRepository.findAll();
+        List<Student> studentList = studentRepository.findAll();
+
+        Map<Long, Integer> schoolStudentCountMap = new HashMap<>();
+
+        for (School school : schoolList) {
+            int studentCount = 0;
+            for (Student student : studentList) {
+                if (student.getSchool().getId().equals(school.getId())) {
+                    studentCount++;
+                }
+            }
+            schoolStudentCountMap.put(school.getId(), studentCount);
+        }
+
+        List<SchoolStudentsReport> schoolStudentsReportList = new ArrayList<>();
+
+        for (School school : schoolList) {
+            Integer studentCount = schoolStudentCountMap.get(school.getId());
+            if (studentCount != null) {
+                SchoolStudentsReport report = SchoolStudentsReport.builder()
+                        .schoolName(school.getName())
+                        .totalStudents(studentCount)
+                        .build();
+                schoolStudentsReportList.add(report);
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:SchoolStudentsReport.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(schoolStudentsReportList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\SchoolStudentsReport.pdf");
+        return "Report generated: " + pathToReports + "\\SchoolStudentsReport.pdf";
+    }
 }

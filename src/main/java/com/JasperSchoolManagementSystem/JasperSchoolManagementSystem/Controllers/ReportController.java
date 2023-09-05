@@ -105,4 +105,15 @@ public class ReportController {
             return ResponseEntity.status(500).body("Error generating report.");
         }
     }
+
+
+    @GetMapping("/generateGradeDistributionReport")
+    public String generateGradeDistributionReport() {
+        try {
+            return reportService.generateGradeDistributionReport();
+        } catch (FileNotFoundException | JRException e) {
+            e.printStackTrace();
+            return "Error generating the report.";
+        }
+    }
 }

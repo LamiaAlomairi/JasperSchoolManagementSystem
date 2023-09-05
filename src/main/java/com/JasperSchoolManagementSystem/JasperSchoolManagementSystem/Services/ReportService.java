@@ -437,4 +437,73 @@ public class ReportService {
         return "Report generated: " + pathToReports + "\\SchoolPerformanceReport.pdf";
     }
 
+    /* Course Grade Distribution Report ------------------------------------------------------------- */
+    public String generateGradeDistributionReport() throws FileNotFoundException, JRException {
+        List<Course> courseList = courseRepository.findAll();
+        List<Mark> markList = markRepository.findAll();
+
+        Map<String, Map<String, Integer>> courseGradeDistributionMap = new HashMap<>();
+
+        // Initialize grade counts for all courses with all possible grades
+        for (Course course : courseList) {
+            Map<String, Integer> gradeCounts = new HashMap<>();
+            gradeCounts.put("A", 0);
+            gradeCounts.put("B", 0);
+            gradeCounts.put("C", 0);
+            gradeCounts.put("D", 0);
+            gradeCounts.put("F", 0);
+
+            courseGradeDistributionMap.put(course.getName(), gradeCounts);
+        }
+
+        // Count the actual grades
+        for (Mark mark : markList) {
+            String courseName = mark.getCourse().getName();
+            String grade = mark.getGrade();
+
+            // Get the grade counts map for the course
+            Map<String, Integer> gradeCounts = courseGradeDistributionMap.get(courseName);
+
+            if (gradeCounts != null) {
+                // Increment the count for the specific grade
+                gradeCounts.put(grade, gradeCounts.getOrDefault(grade, 0) + 1);
+            }
+        }
+
+        List<CourseGradeDistribution> courseGradeDistributionList = new ArrayList<>();
+
+        // Convert the grade counts map into CourseGradeDistribution objects
+        for (Map.Entry<String, Map<String, Integer>> entry : courseGradeDistributionMap.entrySet()) {
+            String courseName = entry.getKey();
+            Map<String, Integer> gradeCounts = entry.getValue();
+
+            for (Map.Entry<String, Integer> gradeEntry : gradeCounts.entrySet()) {
+                String grade = gradeEntry.getKey();
+                int count = gradeEntry.getValue();
+
+                if (count > 0) { // Only add if there are counts for this grade
+                    CourseGradeDistribution distribution = CourseGradeDistribution.builder()
+                            .courseName(courseName)
+                            .grade(grade)
+                            .count(count)
+                            .build();
+
+                    courseGradeDistributionList.add(distribution); // Add the distribution to the list
+                }
+            }
+        }
+
+        File file = ResourceUtils.getFile("classpath:CourseGradeDistributionReport.jrxml");
+        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(courseGradeDistributionList);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("CreatedBy", "Lamia");
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+        JasperExportManager.exportReportToPdfFile(jasperPrint, pathToReports + "\\CourseGradeDistributionReport.pdf");
+
+        return "Report generated: " + pathToReports + "\\CourseGradeDistributionReport.pdf";
+    }
 }
